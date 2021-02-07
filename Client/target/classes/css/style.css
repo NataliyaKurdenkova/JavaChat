@@ -1,0 +1,33 @@
+.root{
+    -fx-background-color:#ffb841;
+    -fx-background-image: url(../images/fon.jpg);
+    -fx-background-size: 100% 100%;
+    -fx-border-color:#FFF8DC;
+    -fx-text-inner-color: red;
+
+}
+.button{
+    -fx-background-color:#007fff;
+    -fx-text-fill: white;
+}
+.button:hover {
+    -fx-background-color: #FFF8DC;
+    -fx-font-weight: bold;
+    -fx-text-fill: #00008B;
+
+}
+.button:focused{
+    -fx-border-color:#DC143C;
+}
+
+#textField1{
+    -fx-focused:true;
+    -fx-text-fill: #00008B;
+    -fx-font-family: Arial;
+}
+#textArea1{
+    -fx-focus-color: transparent;
+    -fx-text-fill: #00008B;
+    -fx-font-family: Arial;
+    -fx-font-size: 16px;
+}
