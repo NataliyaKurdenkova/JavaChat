@@ -11,6 +11,7 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
+<?import javafx.scene.control.ListView?>
 <VBox fx:controller="client.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
     <stylesheets>
@@ -21,9 +22,14 @@
             <TextField fx:id="loginField" promptText="login" HBox.hgrow="ALWAYS" />
             <PasswordField fx:id="passwordField" promptText="password" HBox.hgrow="ALWAYS" onAction="#trytoAuth"/>
             <Button text="Вход" onAction="#trytoAuth" minWidth="100"/>
+            <Button text="Регистрация" onAction="#clickRegBtn" minWidth="100"/>
         </HBox>
 
-    <TextArea fx:id="textArea1" layoutX="6.0" layoutY="80.0" prefHeight="366.0" prefWidth="335.0" />
+    <HBox VBox.vgrow="ALWAYS">
+        <TextArea fx:id="textArea1" HBox.hgrow="ALWAYS" editable="false" wrapText="true"/>
+        <ListView fx:id="clientList" minWidth="120" visible="false" managed="false"
+                  onMouseReleased="#clientListClicked"/>
+    </HBox>
 
         <HBox fx:id="messagePanel" layoutX="10.0" layoutY="450.0">
         <Button onAction="#clickBtn2" prefHeight="25.0" prefWidth="80.0" text="Отправить" />

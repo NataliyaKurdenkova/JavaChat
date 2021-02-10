@@ -7,6 +7,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+import java.net.SocketTimeoutException;
+
 public class ClientHandler {
     private Server server;
     private Socket clSocket;
@@ -15,6 +17,7 @@ public class ClientHandler {
     private DataOutputStream out;
 
     private String nickname;
+    private String login;
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -24,7 +27,11 @@ public class ClientHandler {
             out = new DataOutputStream(socket.getOutputStream());
 
             new Thread(() -> {
+
+
                 try {
+                    clSocket.setSoTimeout(5000);
+
                     //цикл аутентификации
                     while (true) {
                         String str = in.readUTF();
@@ -39,15 +46,33 @@ public class ClientHandler {
                                 String newNick = server.getAuthService()
                                         .getNicknameByLoginAndPassword(token[1], token[2]);
                                 if (newNick != null) {
-                                    nickname = newNick;
-                                    sendMsg(Command.AUTH_OK + " " + nickname);
-                                    server.subscribe(this);
-                                    break;
+                                    if (!server.isLoginAuthenticated(login)) {
+                                        nickname = newNick;
+                                        sendMsg(Command.AUTH_OK + " " + nickname);
+                                        server.subscribe(this);
+                                        clSocket.setSoTimeout(0);
+                                        break;
+                                    } else {
+                                        sendMsg("С этим логинов уже вошли");
+                                    }
                                 } else {
                                     sendMsg("Неверный логин и пароль");
+
                                 }
                             }
-
+                            if (str.startsWith(Command.REG)) {
+                                String[] token = str.split("\\s");
+                                if (token.length < 4) {
+                                    continue;
+                                }
+                                boolean regSuccessful = server.getAuthService()
+                                        .registration(token[1], token[2], token[3]);
+                                if (regSuccessful) {
+                                    sendMsg(Command.REG_OK);
+                                } else {
+                                    sendMsg(Command.REG_NO);
+                                }
+                            }
                         }
                     }
 
@@ -56,19 +81,33 @@ public class ClientHandler {
                         String str = in.readUTF();
                         if (str.startsWith("/")) {
                             if (str.equals(Command.END)) {
-                            out.writeUTF(Command.END);
-                            break;
-                        }else
-                            if (str.startsWith(Command.W_NICK)) {
-                                String[] token = str.split("\\s", 3);
-                                server.MsgPrivate(this,token[1], token[2]);
+                                out.writeUTF(Command.END);
+                                break;
+                            } else if (str.startsWith(Command.W_NICK)) {
+                                String[] token = str.split("\\s+", 3);
+                                if (token.length < 3) {
+                                    continue;
+                                }
+                                server.msgPrivate(this, token[1], token[2]);
                             }
 
-                        }else server.broadcastMsg(this, str);
-
+                        } else server.broadcastMsg(this, str);
 
 
                     }
+
+
+                } catch (SocketTimeoutException e) {
+                    try {
+                        System.out.println("taimaut");
+                        out.writeUTF(Command.END);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+
+                } catch (RuntimeException e) {
+                    System.out.println(e.getMessage());
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -80,7 +119,9 @@ public class ClientHandler {
                         e.printStackTrace();
                     }
                 }
+
             }).start();
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -97,5 +138,9 @@ public class ClientHandler {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public String getLogin() {
+        return login;
     }
 }

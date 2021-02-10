@@ -1,5 +1,7 @@
 package server;
 
+import commands.Command;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,7 +18,9 @@ public class Server {
     private final int PORT = 8189;
 
     private List<ClientHandler> clients;
+
     private AuthService authService;
+
     public Server() {
         clients=new CopyOnWriteArrayList<>();
         authService = new SimpleAuthService();
@@ -47,7 +51,7 @@ public class Server {
         }
     }
 // приватные сообщения
-    public void MsgPrivate(ClientHandler author, String receiver, String msg){
+    public void msgPrivate(ClientHandler author, String receiver, String msg){
 
         for (ClientHandler c : clients) {
             if(c.getNickname().equals(receiver)){
@@ -60,17 +64,46 @@ public class Server {
     }
 
 
-    // добавляет клиента в список
+    // добавляет(подписывает) клиента в список
     public void subscribe(ClientHandler clientHandler){
         clients.add(clientHandler);
+        broadcastClientList();
     }
-    // удаляет клиента из списка
+    // удаляет(отписывает) клиента из списка
     public void unsubscribe(ClientHandler clientHandler){
         clients.remove(clientHandler);
+        broadcastClientList();
     }
+
+
     public AuthService getAuthService() {
         return authService;
     }
+
+
+//отображение всех залогинившихся клиентов в листе справа чата
+    public void broadcastClientList(){
+        StringBuilder sb = new StringBuilder(Command.CLIENT_LIST);
+        for (ClientHandler c : clients) {
+            sb.append(" ").append(c.getNickname());
+        }
+
+        String message = sb.toString();
+
+        for (ClientHandler c : clients) {
+            c.sendMsg(message);
+        }
+    }
+
+    public boolean isLoginAuthenticated(String login){
+        for (ClientHandler c : clients) {
+            if(c.getLogin().equals(login)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 
 
