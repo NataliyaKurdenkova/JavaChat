@@ -30,7 +30,7 @@ public class ClientHandler {
 
 
                 try {
-                    clSocket.setSoTimeout(5000);
+                    clSocket.setSoTimeout(120000);
 
                     //цикл аутентификации
                     while (true) {
